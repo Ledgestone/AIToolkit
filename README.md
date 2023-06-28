@@ -4,10 +4,13 @@ AIToolkit is a project that simplifies the creation of interactive prompts for c
 
 ## Getting Started
 
-To use the toolkit, you need to import the necessary modules and adjust your system path to include the location of the AIToolkit directory.
+The toolkit can be installed using:
+
+`pip install git+https://username:personal_access_token@github.com/Ledgestone/AIToolkit`
+
+To use the toolkit, you need to import the necessary modules. Here are the typical imports that are probably needed.
 
 ```python
-import os
 from dotenv import load_dotenv, find_dotenv
 from ai_toolkit import AIModelFactory, PromptBuilder
 ```
