@@ -1,12 +1,12 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
-    name='AIToolkit',
-    version='0.0.1',
+    name='ai_toolkit',
+    version='0.0.2',
     author='Andrew Hellrigel',
     author_email='andrew.hellrigel@ledgestone.com',
     description='A simplified interface for interacting with LLMs',
-    packages=['ai_toolkit'],
+    packages=find_packages(),
     python_requires='>=3.6',
     install_requires=[
         'openai',
