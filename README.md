@@ -6,7 +6,9 @@ AIToolkit is a project that simplifies the creation of interactive prompts for c
 
 The toolkit can be installed using:
 
-`pip install git+https://username:personal_access_token@github.com/Ledgestone/AIToolkit`
+`pip install git+https://github.com/Ledgestone/AIToolkit.git`
+or
+`pdm add git+https://github.com/Ledgestone/AIToolkit.git`
 
 To use the toolkit, you need to import the necessary modules. Here are the typical imports that are probably needed.
 

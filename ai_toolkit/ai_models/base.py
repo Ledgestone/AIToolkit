@@ -56,18 +56,14 @@ class AIModel(ABC):
         prior_role = None
         for message in messages:
             current_role = message["role"]
-            if prior_role is None:
-                if current_role not in ["user", "system"]:
-                    raise AssertionError(f"The first role must be either 'user' or 'system'. Got {current_role}")
-            elif prior_role == "system" and current_role != "user":
-                raise AssertionError(f"system messages must be followed by a user message. Got {current_role}")
+            if current_role not in ["user", "system", "assistant"]:
+                raise AssertionError(f"Message role must be either 'user', 'system', or 'assistant'. Got {current_role}")
+            elif prior_role == "system" and current_role not in ["user", "assistant"]:
+                raise AssertionError(f"system messages must be followed by a user or assistant message. Got {current_role}")
             elif prior_role == "user" and current_role != "assistant":
                 raise AssertionError(f"user messages must be followed by an assistant message. Got {current_role}")
             elif prior_role == "assistant" and current_role != "user":
                 raise AssertionError(f"assistant messages must be followed by a user message. Got {current_role}")
-
-            if current_role not in ["user", "system", "assistant"]:
-                raise AssertionError(f"Message role must be either 'user', 'system', or 'assistant'. Got {current_role}")
 
             prior_role = current_role
 

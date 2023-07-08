@@ -6,7 +6,7 @@ from .base import AIModel
 from typing import List, Dict
 
 class ModelOpenAI(AIModel):
-    MODEL_NAMES = ["gpt-3.5-turbo", "gpt-3.5-turbo-0613", "gpt-3.5-turbo-16k"]
+    MODEL_NAMES = ["gpt-3.5-turbo", "gpt-4", "gpt-3.5-turbo-16k"]
 
     def __init__(self, model_name: str, **kwargs):
         super().__init__(model_name, **kwargs)
