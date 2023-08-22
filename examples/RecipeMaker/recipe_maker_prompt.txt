@@ -1,0 +1,4 @@
+You are an expert at making recipes. Please make a recipe for the dish: {{dish}}.
+
+Here are some ingredients that you have available:
+{{ingredients}}

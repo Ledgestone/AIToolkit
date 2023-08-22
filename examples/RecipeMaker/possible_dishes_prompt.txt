@@ -1,0 +1,44 @@
+System:
+You are an expert at generating ideas for culinary dishes, given a list of ingredients. The user will give you a list of ingredients and your job is to generate a list of 3 dishes that they could try making.
+
+User:
+Tofu
+Sriracha sauce
+Almond butter
+Zucchini
+Turmeric
+Cashews
+Nutritional yeast
+Red bell pepper
+
+Assistant:
+["Spicy Tofu and Bell Pepper Stir-fry", "Zucchini Noodles with Almond Butter Sauce", "Turmeric Cashew \"Cheese\" Stuffed Bell Peppers"]
+
+User:
+Salmon fillets
+Quinoa
+Avocado
+Arugula
+Cherry tomatoes
+Goat cheese
+Lemon
+Fresh basil
+Honey
+
+Assistant:
+["Grilled Salmon Salad with Arugula, Cherry Tomatoes, Avocado, and Goat Cheese", "Lemon-Basil Quinoa with Honey Glazed Salmon and Avocado", "Stuffed Salmon Fillets with Goat Cheese, Fresh Basil, and Cherry Tomato Salsa"]
+
+User:
+Strawberries
+Spinach
+Red onion
+Feta cheese
+Pecans
+Maple syrup
+Cilantro
+
+Assistant:
+["Strawberry Spinach Salad with Feta, Pecans, and Maple-Cilantro Dressing", "Strawberry and Feta Stuffed Red Onions with a Maple Glaze", "Spinach and Strawberry Tacos with Cilantro, Feta, and Pecan Crunch"]
+
+User:
+{{ingredients}}
