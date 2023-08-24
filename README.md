@@ -56,8 +56,8 @@ This would return something like: `The capital of France is Paris`.
 
 Note that all methods are chainable so this would be equivalent to:
 ```python
-prompt = "What is the capital of France?"
-print(AIModel("My LLM").set_input(model_name="gpt-3.5-turbo", prompt=prompt).process().get_output())
+p = "What is the capital of France?"
+print(AIModel("My LLM").set_input(model_name="gpt-3.5-turbo", prompt=p).process().get_output())
 ```
 
 ### Using multiple AITools together
@@ -65,28 +65,47 @@ print(AIModel("My LLM").set_input(model_name="gpt-3.5-turbo", prompt=prompt).pro
 The above example isn't very interesting, since only one AITool is in use. Let's now look at adding in a `PromptBuilder`
 
 ```python
-prompt = PromptBuilder("My Prompt").set_input(template="What is the capital of {{country}}", country="France")
-llm = AIModel("My LLM").set_input(model_name="gpt-3.5-turbo", prompt=prompt)
+prompt_tool = PromptBuilder("My Prompt").set_input(
+    template="What is the capital of {{country}}", 
+    country="France")
 
-prompt.process()
-llm.process()
-print(llm.get_output())
+llm_tool = AIModel("My LLM").set_input(
+    model_name="gpt-3.5-turbo", 
+    prompt=prompt_tool)
+
+prompt_tool.process()
+llm_tool.process()
+print(llm_tool.get_output())
 ```
 
 As you can see from this example, it is easy to chain together different AITools. Any input can be another AITool, and as long as all inputs have processed, the current AITool will be able to process as well.
 
 ### Using an AIProcess
 
-It can become tedious to process several AITools that have been chained together, so AITools can be grouped together using an AIProcess, so that they can all be processed at once as another AITool.
+It can become tedious to process several AITools that have been chained together, so AITools can be grouped together using an AIProcess, so that they can all be processed at once as another AITool. This is the pipeline we will be designing:
+
+<img src="https://imgr.whimsical.com/thumbnails/LY2PxSbciprRTsLrSAEwQm/A2MhZCJw371W3NnSrJZvMt" alt="drawing" width="400"/>
 
 Let's first define several AITools that we want to group into a process:
 
 ```python
-dishes_file = FileReader("Possible Dishes File Reader").set_input(file_path="possible_dishes_prompt.txt")
-dishes_prompt = PromptBuilder("Possible Dishes Prompt").set_input(template=dishes_file)
-dishes_llm = AIModel("Possible Dishes LLM").set_input(model_name="gpt-3.5-turbo", prompt=dishes_prompt)
-dishes_json = Function("Possible Dishes JSON").set_input(function="convert_to_json", input=dishes_llm)
-dishes_file_writer = FileWriter("Possible Dishes File Writer").set_input(file_path="possible_dishes.json", data=dishes_json)
+dishes_file = FileReader("Possible Dishes File Reader").set_input(
+    file_path="possible_dishes_prompt.txt")
+    
+dishes_prompt = PromptBuilder("Possible Dishes Prompt").set_input(
+    template=dishes_file)
+
+dishes_llm = AIModel("Possible Dishes LLM").set_input(
+    model_name="gpt-3.5-turbo", 
+    prompt=dishes_prompt)
+
+dishes_json = Function("Possible Dishes JSON").set_input(
+    function="convert_to_json", 
+    input=dishes_llm)
+
+dishes_file_writer = FileWriter("Possible Dishes File Writer").set_input(
+    file_path="possible_dishes.json", 
+    data=dishes_json)
 ```
 
 After defining these AITools, let's create our AIProcess:
