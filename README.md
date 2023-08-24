@@ -4,6 +4,12 @@ AIToolkit is a project that simplifies the creation of pipelines utilizing large
 
 The core concept is the idea of an AITool. Every object in this library is AITool, and AITools can be connected together in just about any way. AITools can be grouped together as an AIProcess, which is also just an AITool.
 
+The main goals are this project is to drive both high flexibility and simplicity. While safeguards can be built into pipelines by users to improve robustness, making these pipelines robust is not the goal of this package (there are many other libraries that aim to do this at the expense of flexibility and/or simplicity). This is why some deliberate design decisions have been made such as:
+
+- **Allowing dynamic inputs to any AITool** - All AITools have certain inputs that are required, but most of them have many optional inputs, and support the user defining their own inputs.
+- **Allowing all inputs to be dynamic** - while a lot of LLM libraries (i.e. LangChain, etc.) make you configure certain things in the pipeline such as what LLM model is being used, what templates are used for the prompt, etc. ***Everything*** in the AIToolkit can be dynamically set at runtime through another AITool. So you could have one AIModel decide what model another AIModel uses, or what file a FileReader should read, or even have it write the python code that a Function uses. You could load the template that a PromptBuilder uses from a file, or load the python code that a Function uses from a file. The possibilities are endless!
+- **Not enforcing any strict typing on the inputs/outputs** - The user will have to think about how data is being around to ensure type safety as that is not a core feature of this package (it would greatly reduce simplicity)
+
 ## Getting Started
 
 The toolkit can be installed using:
@@ -112,3 +118,4 @@ Note again that the input here for `ingedients` could also be another AITool.
 - Create an example of how you would set up an AIProcess that automatically adjusts which LLM Model is used depending on the number of tokens in the prompt.
 - Create an AITool for interacting with a key/value store database
 - Create an AITool for creating and retrieving embeddings
+- Add the abililty to pass in Callables to the function, so it doesn't require executing code from a string
