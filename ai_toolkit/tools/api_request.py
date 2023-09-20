@@ -1,6 +1,7 @@
 # api_request.py
 
 import json
+from json.decoder import JSONDecodeError
 import requests
 from typing import List, Dict, Any
 from ..ai_tool import AITool
@@ -44,4 +45,9 @@ class APIRequest(AITool):
         except requests.exceptions.RequestException:
             raise AIRetryableError(f"Request exception")
 
-        return response.json()
+        try:
+            return_value = response.json()
+            return return_value
+        except JSONDecodeError:
+            # The response is probably just a string
+            return response.text

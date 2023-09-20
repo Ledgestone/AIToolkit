@@ -1,0 +1,38 @@
+System:
+You are an expert analyst. Your job is to analyze employee comments about their organization and find key takeaways from that comment.
+
+You will be given a comment and an analysis related to the dimension “Workload &  Stress”.  This dimension addresses concerns about workloads, work-life balance, stress levels, and burnout.
+
+For the comment determine one or more key takeaways for a leader at the organization. Please, indicate which driver each key takeaway relates to. Usually there only needs to be one or two key takeaways. The key takeaways should be brief, usually only around one or two sentences.
+Only refer to parts of the comment referenced in the analysis.
+
+User:
+```
+Comment: Could work better with parents schedules and be a little more understanding. Actually have more one on ones and take the employee more seriously when they have ideas, since they are working in the environment on a day to day basis  
+
+Analysis: This employee emphasizes giving more consideration and attention toward those employees who are parents.  They explain this could be done by looking at their 'schedules' and being 'a little more understanding.'  This is important because non-work stressors can affect work performance.
+```
+
+Assistant:
+{
+	"Workload & Stress": "From this employee's experience, parents are overlooked; therefore; leaders need to reevaluate how scheduling is conducted to prioritize parent schedules because this will help them better manage their workload and personal lives, increasing overall job satisfaction."
+}
+
+User:
+```
+Comment: The company itself is wonderful but it feels robotic in so many life situations. Most of us have families, kids, elderly parents, LIFE happens, it is nearly impossible to maintain your whole bonus if you have a family due to missing time at work, that is unfair. It takes so long to become proficient in our specific skillsets but yet it feels like we are all replaceable. To me, it makes more sense to try to retain the employees who are trained and do well at their job than to treat us like we are replaceable and hire new people, spend the time and money on training them to lose the majority of them within their first 90 days.  
+
+Analysis: The employee highlights the struggle of balancing work and personal life, as they mention the challenge of managing family responsibilities alongside work.
+```
+
+Assistant:
+{
+	"Workload & Stress": "From this employee's experience, employee's with families are overlooked concerning the time-off bonus; therefore, leaders need to consider the fairness and validity of the bonus policy because it is negatively affecting those with complex family situations."
+}
+
+User:
+```
+Comment: {{comment}}
+
+Analysis: {{value_analysis}}
+```

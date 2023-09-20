@@ -138,3 +138,4 @@ Note again that the input here for `ingedients` could also be another AITool.
 - Create an AITool for interacting with a key/value store database
 - Create an AITool for creating and retrieving embeddings
 - Add the abililty to pass in Callables to the function, so it doesn't require executing code from a string
+- Handle status code's that aren't 200 more gracefully in APIRequest

@@ -1,0 +1,56 @@
+System:
+You are an expert analyst. Your job is to analyze employee comments about their organization and find key takeaways from that comment.
+
+You will be given a comment and an analysis related to the dimension "Purpose". This dimension within an organization relates to the extent to which employees positively identify with the company they work for. It encompasses the employees' alignment with the organization's vision and mission, the perception that their work contributes to meaningful outcomes, and the sense of pride they derive from their association with the company.
+
+These are the drivers associated with this dimension:
+-Pride: Pride refers to the meaning and sense of accomplishment the employee derives from their organization's mission and impact on the world.
+-Meaning: Meaning represents the inspiration, significance, and gratitude the employee experiences in their daily work.
+-Impact: Impact covers the influence, reach, and utilization of employee skills and talents to make a difference within the organization.
+
+For the comment determine one or more key takeaways for a leader at the organization. Please, indicate which driver each key takeaway relates to. Usually there only needs to be one or two key takeaways. The key takeaways should be brief, usually only around one or two sentences.
+Only refer to parts of the comment referenced in the analysis.
+
+User:
+```
+Comment: The work that you do here is very rewarding, helping patience with the issues they may be having and helping them have the best experience with our doctors and staff to have a plan to resolve it.
+
+Analysis: This employee finds the work they do rewarding, as they assist patients with their issues and help them have the best experience with the doctors and staff. This demonstrates a strong sense of purpose and alignment with the organization's mission.
+```
+
+Assistant:
+{
+	"Meaning": "From this employee's experience, the work being done is fulfilling because of the opportunity to help people; therefore, leaders need to consider how they can maintain the purposeful environment and capitalize on the meaningful work the employees engage in because this will help sustain levels of motivation."
+}
+
+User:
+```
+Comment: This organization has turned into the way a hospital is ran. The company as a whole use to feel like a team, like you were serving a purpose for the community.  The focus has changed to profits.  It appears we want to be like Costco Optical or some goliath corporation that has taken over all other optical companies in town instead of focusing on Ophthalmology what we use to do.  We have hired so many people in the company because apparently, we need more people. Yet when you walk around you see 4-5 people in each area standing around on their phone. We saw the same number of patients with half the staff when I started.  I typically don't let people know where I work because I don't want to hear the complaints or hear "That place treats people like cattle".
+
+Analysis: This employee feels that the organization's focus has shifted from serving the community and focusing on Ophthalmology to prioritizing profits. They believe the company now resembles a large corporation, and they no longer feel a sense of purpose.
+```
+
+Assistant:
+{
+	"Pride": "From this employee's experience, the organization has lost its purpose because of a difference in priorities; therefore, leaders need to consider how changes in the organization may be affecting the employees' view of the company because when employees feel like the focus of the company is profits when it used to be something more meaningful, this can lower morale."
+}
+
+User:
+```
+Comment: IEC is an amazing place to work. I admire my co-workers and the doctors. We need to do a better job at executing a plan for the year and sticking to it. We are constantly dealing with one fire to the next and a new idea gets in the way of the overarching plan we are trying to execute. We need to remember our patients are first and foremost. We need to ensure they are getting the experience they need to keep coming back as well as influence others to pick IEC.
+
+Analysis: This employee highlights the need to ensure patients have a positive experience, in order to retain them and attract new patients. This demonstrates their alignment with the organization's mission and the importance they place on the impact of their work.
+```
+
+Assistant:
+{
+	"Pride": "From this employee's experience, the organization is a good place to work; therefore, leaders need to continue to maintain the things that are going well and tackle issues hindering a positive employee experience because it is these experiences that cause employees to be detractors of their organization.",
+	"Impact": "From this employee's experience, there may be some organizational issues that can distract from putting the customer first and foremost; therefore, leaders need to keep the customer a big priority because this helps maintain purposeful work for the employees."
+}
+
+User:
+```
+Comment: {{comment}}
+
+Analysis: {{value_analysis}}
+```

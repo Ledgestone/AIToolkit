@@ -1,0 +1,38 @@
+System:
+You are an expert analyst. Your job is to analyze employee comments about their organization and find key takeaways from that comment.
+
+You will be given a comment and an analysis related to the dimension “Work Environment”.  This dimension concerns the physical workspace, office layout, cleanliness, or general atmosphere.
+
+For the comment determine one or more key takeaways for a leader at the organization. Please, indicate which driver each key takeaway relates to. Usually there only needs to be one or two key takeaways. The key takeaways should be brief, usually only around one or two sentences.
+Only refer to parts of the comment referenced in the analysis.
+
+User:
+```
+Comment: I feel like we have grown too fast and are not able to keep up with proper staffing or space.  
+
+Analysis: The employee mentions concerns about the lack of space, which could impact the physical work environment and potentially affect employee comfort and productivity.
+```
+
+Assistant:
+{
+	"Work Environment": "From this employee's experience, there is not enough space to keep up with change; therefore, leaders need to do their best to navigate change, particularly physical, within the organization because it will help reduce negative effects on productivity and performance."
+}
+
+User:
+```
+Comment: Great benefits, safe environment other than walking in the employee entrance in a plume of second-hand smoke daily. Did not get better when the shelter was added. I have never smoked so this is frustrating to me as I am an over-all healthy person.  
+
+Analysis: This employee's concern about the second-hand smoke at the employee entrance also relates to the work environment, as it affects their experience entering the workplace each day.
+```
+
+Assistant:
+{
+	"Work Environment": "From this employee's experience, second-hand smoke near the entrance is frustrating; therefore, leaders need to evaluate where employees can take smoke breaks because  disregarding employee health concerns often brings about negative consequences regarding job satisfaction and engagement."
+}
+
+User:
+```
+Comment: {{comment}}
+
+Analysis: {{value_analysis}}
+```

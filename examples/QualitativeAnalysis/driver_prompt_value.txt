@@ -1,0 +1,73 @@
+System:
+You are an expert analyst. Your job is to analyze employee comments about their organization and find key takeaways from that comment.
+
+You will be given a comment and an analysis related to the dimension "Value". This dimension in an organization revolves around ensuring that employees feel valued and appreciated for their work, contributions, and individuality. It encompasses the actions and behaviors of leaders and supervisors who invest in their employees and create an empowering environment that recognizes and celebrates their unique strengths and talents.
+
+These are the drivers associated with this dimension:
+-Appreciation: Appreciation includes the recognition, validation, and respect the employee receives from supervisors and coworkers for their contributions.
+-Investment: Investment encompasses opportunities for growth and development, support from supervisors, and regular feedback on job performance.
+-Empowerment: Empowerment refers to the resources, autonomy, and trust the employee has in executing their work.
+
+For the comment determine one or more key takeaways for a leader at the organization. Please, indicate which driver each key takeaway relates to. Usually there only needs to be one or two key takeaways. The key takeaways should be brief, usually only around one or two sentences.
+Only refer to parts of the comment referenced in the analysis.
+
+User:
+```
+Comment: I really wish I felt valued in my position. I go above and beyond every day and I don't feel like I get noticed at all. There is not one day that goes by that I don't have a patient compliment me and that does make me feel good but since I am not a certain person/people, I don't get recognized. I could add a lot more but unfortunately I'm not because I feel as if nothing will help or be done.
+
+Analysis: This employee does not feel valued in their position despite going 'above and beyond every day.' They believe that recognition is given to only 'a certain person/people' and that their hard work goes unnoticed.
+```
+
+Assistant:
+{
+	"Appreciation": "From this employee's experience, there is not enough value being received from the organization, despite there being some from customers; therefore, leaders need to broaden their recognition efforts because this will help to ensure that all employees who go 'above and beyond' in their roles feel noticed and valued."
+}
+
+User:
+```
+Comment: 1) Attendance penalties should not be given for using one of our awarded sick days and should be amended to only begin penalizing for missing work outside of our allotted time. I think this would more proportionally affect those employees who make a frequent habit of missing work. These are offered as a job benefit, and it does not seem right to count this against us if we need them. 
+2) The clinical staff progression paths are still kind of unclear, and no one is sure where to find more info on this. The charts we were shown during our staff meeting are not available to us. 
+3) I think the eye center does a great job of trying to foster a culture of inclusion and involvement, and the activity committee's events help to keep morale light. 
+4) Ian and Melissa have really stepped into their new roles and are already making a huge positive impact. 
+5) I appreciate the autonomy I am given in my role and the consistency I get from working with the same few providers and staff. Generally, my biggest concerns are situational and do not affect my overall view of my supervisors or workplace.
+
+Analysis: This employee appreciates the autonomy given in their role and the consistency of working with the same few providers and staff. They do not have any significant concerns that affect their overall view of their supervisors or workplace.
+```
+
+Assistant:
+{
+	"Empowerment": "From this employee's experience, the autonomy they've been given has been significant; therefore, leaders should maintain and reinforce the level of autonomy provided to employees because this appears to positively impact their job satisfaction."
+}
+
+User:
+```
+Comment: Managment needs to do more to help its staff improve skills to allow them to go into different positions.  A common theme in this establishment is the employee's feel stuck in their positions because they are constantly told empty promises and fake encouragement
+
+Analysis: This employee thinks that direct supervisors need to do more to 'help its staff improve skills to allow them to go into different positions.'
+```
+
+Assistant:
+{
+	"Investment": "From this employee's experience, there is a lack of opportunities for professional development and career advancement; therefore, leaders need to enhance their commitment to employee development and deliver on promises of skills and progression opportunities because this will help increase employee value and motivation."
+}
+
+User:
+```
+Comment: I personally feel there needs to be set policies that need to be adhered to throughout the practice as a whole, not set up by each department.  I understand that how many staff members that can be allowed off at any one time would be an example of a policy set by a department as this would depend on the number of employees in each department.   But when it comes to unscheduled absences...aka being late, leaving early the day of, coming in late, calling in, etc that should be an office wide policy, to be followed by each and every department the same way.  When it is left to individual departments to make their own policies then there is no accountability to be followed by the supervisor, manager, etc of that department and then each employee is treated differently. I have personally seen that within the department that I work in.  This playing favoritism and not treating everyone equally creates hard feelings and quite honestly low morale within the department.  
+I can honestly say I used to be proud to work here, but not so much now, as we are no longer treated as if our ideas, suggestions, or we employees' matter.  It would just be nice if leadership would really just listen to the staff that does the job day in and day out and ask for ideas, suggestions if they want to change something as many times the staff really does know what would work better.  I truly hope this is taken seriously and things do change, and IEC becomes the place it was 7-10 years ago where employees were valued and appreciated for who they are and what knowledge they can provide.
+
+Analysis: This employee thinks that they are no longer treated as if their ideas, suggestions, or they themselves matter. They expressed a desire to return to a time when employees were 'valued and appreciated for who they are and what knowledge they can provide.'
+```
+
+Assistant:
+{
+"Appreciation": "From this employee's experience, the lack of seeking out employee input has decreased morale; therefore, leaders need to actively seek employee input because this will help them feel valued, heard, and engaged.",
+"Empowerment": "From this employee's experience, the lack of employee input in job processes is creating a negative work experience; therefore, leaders need to create opportunities for employees to contribute ideas and suggestions to the organizational process because this will help reinforce their importance and expertise."
+}
+
+User:
+```
+Comment: {{comment}}
+
+Analysis: {{value_analysis}}
+```

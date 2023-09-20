@@ -4,6 +4,8 @@
 *.toml
 
 *Venv
+Clients/
+Temp/
 
 __pycache__/
 .DS_Store
