@@ -43,7 +43,7 @@ class AIProcess(AITool):
             if key in self.process_inputs:
                 self.process_inputs[key].set_input(**{key: value})
             else:
-                self.process_inputs[key] = _AIProcessInput().set_input(**{key: value})
+                self.process_inputs[key] = _AIProcessInput(self).set_input(**{key: value})
                 self.dynamic_input.append(key)
 
             # If the value is an AITool, add it to the dependencies, and add to the dependents of the AITool
@@ -52,16 +52,32 @@ class AIProcess(AITool):
                 value._add_dependent(self)
 
             self.input[key] = value
+        
+        return self
     
     def expose_input(self, key: str, tool: AITool) -> "AIProcess":
         if key in self.process_inputs:
             tool.set_input(**{key: self.process_inputs[key]})
         else:
-            self.process_inputs[key] = _AIProcessInput()
+            self.process_inputs[key] = _AIProcessInput(self)
             tool.set_input(**{key: self.process_inputs[key]})
             self.dynamic_input.append(key)
 
         return self
+    
+    def can_process(self) -> bool:
+        for input in self.process_inputs.values():
+            if not input.can_process():
+                return False
+        
+        return True
+            
+    def why_cannot_process(self) -> str:
+        for input in self.process_inputs.values():
+            if not input.can_process():
+                return input.why_cannot_process()
+            
+        return f"{self.__class__.__name__} can process."
     
     def expose_output(self, tool: AITool) -> "AIProcess":
         self.output_tool = tool
@@ -84,6 +100,8 @@ class AIProcess(AITool):
     def _all_dependents(self, tool: AITool) -> List[AITool]:
         dependents = list()
         for dependent in tool.dependents:
+            if isinstance(dependent, _AIProcessInput):
+                continue
             dependents.append(dependent)
             dependents += self._all_dependents(dependent)
         return dependents
@@ -98,16 +116,19 @@ class AIProcess(AITool):
     
     
 class _AIProcessInput(AITool):
-    def __init__(self):
+    def __init__(self, parent_process: AIProcess):
         super().__init__("AIProcessInput")
         self.input_key: str = None
+        self.parent_process = parent_process
     
     def _process(self) -> Any:
+        if isinstance(self.input[self.input_key], AITool):
+            return self.input[self.input_key]._get_single_output(self)
         return self.input[self.input_key]
     
     def can_process(self) -> bool:
-        if isinstance(self.input, AITool):
-            return self.input._has_single_output()
+        if isinstance(self.input[self.input_key], AITool):
+            return self.input[self.input_key]._has_single_output(self)
         return True
     
     def set_input(self, **kwargs) -> "_AIProcessInput":

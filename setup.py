@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='ai_toolkit',
-    version='1.0.0',
+    version='1.1.0',
     author='Andrew Hellrigel',
     author_email='andrew.hellrigel@ledgestone.com',
     description='A simplified interface for interacting with LLMs',
@@ -11,5 +11,6 @@ setup(
     install_requires=[
         'openai',
         'requests',
+        'promptlayer',
     ],
 )

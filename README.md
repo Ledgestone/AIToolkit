@@ -4,6 +4,17 @@ AIToolkit is a project that simplifies the creation of pipelines utilizing large
 
 The core concept is the idea of an AITool. Every object in this library is AITool, and AITools can be connected together in just about any way. AITools can be grouped together as an AIProcess, which is also just an AITool.
 
+Here is a table of some of the basic tools (a more comprehensive table is below)
+
+| Tool | Description |
+| ---- | ----------- |
+| AIModel | An interface to an LLM. A model name and prompt can be specified and the AIModel will return the LLM's response. |
+| PromptBuilder | A jinja2 style text replacement tool. A template and a dictionary of replacements are specified and this will return a string with the replacements made. |
+| APIRequest | A wrapper around the requests package to make requests to an API. Returns the JSON of the response. |
+| FileReader | Reads the contents of a file. |
+| FileWriter | Writes content to a file. |
+| ConvertToJSON | Converts the input from a string to JSON. |
+
 The main goals are this project is to drive both high flexibility and simplicity. While safeguards can be built into pipelines by users to improve robustness, making these pipelines robust is not the goal of this package (there are many other libraries that aim to do this at the expense of flexibility and/or simplicity). This is why some deliberate design decisions have been made such as:
 
 - **Allowing dynamic inputs to any AITool** - All AITools have certain inputs that are required, but most of them have many optional inputs, and support the user defining their own inputs.
@@ -22,7 +33,7 @@ To use the toolkit, you need to import the necessary modules. Here are the typic
 
 ```python
 from dotenv import load_dotenv, find_dotenv
-from ai_toolkit import AIModel, PromptBuilder, FileReader, FileWriter, AIProcess, Function
+import ai_toolkit as ai
 ```
 
 ## Setup
@@ -46,7 +57,7 @@ Depending on the model that is used, these are the environment variables that wi
 Every AITool has 3 functions that are used. `set_input`, `process`, and `get_output`. Let's look at how you would interact with an LLM using this tool.
 
 ```python
-llm = AIModel("My LLM")
+llm = ai.tools.AIModel("My LLM")
 llm.set_input(model_name="gpt-3.5-turbo", prompt="What is the capital of France?")
 llm.process()
 print(llm.get_output())
@@ -57,7 +68,7 @@ This would return something like: `The capital of France is Paris`.
 Note that all methods are chainable so this would be equivalent to:
 ```python
 p = "What is the capital of France?"
-print(AIModel("My LLM").set_input(model_name="gpt-3.5-turbo", prompt=p).process().get_output())
+print(ai.tools.AIModel("My LLM").set_input(model_name="gpt-3.5-turbo", prompt=p).process().get_output())
 ```
 
 ### Using multiple AITools together
@@ -65,11 +76,11 @@ print(AIModel("My LLM").set_input(model_name="gpt-3.5-turbo", prompt=p).process(
 The above example isn't very interesting, since only one AITool is in use. Let's now look at adding in a `PromptBuilder`
 
 ```python
-prompt_tool = PromptBuilder("My Prompt").set_input(
+prompt_tool = ai.tools.PromptBuilder("My Prompt").set_input(
     template="What is the capital of {{country}}", 
     country="France")
 
-llm_tool = AIModel("My LLM").set_input(
+llm_tool = ai.tools.AIModel("My LLM").set_input(
     model_name="gpt-3.5-turbo", 
     prompt=prompt_tool)
 
@@ -84,26 +95,35 @@ As you can see from this example, it is easy to chain together different AITools
 
 It can become tedious to process several AITools that have been chained together, so AITools can be grouped together using an AIProcess, so that they can all be processed at once as another AITool. This is the pipeline we will be designing:
 
-<img src="https://imgr.whimsical.com/thumbnails/LY2PxSbciprRTsLrSAEwQm/A2MhZCJw371W3NnSrJZvMt" alt="drawing" width="400"/>
+```mermaid
+flowchart TD
+    B{{"`**Input**: Ingredients`"}} -..-> C
+    subgraph Possible Dishes Process
+    A(1: Possible Dishes File Reader) --> C(2: Dishes Prompt)
+    C --> D(3: Dishes LLM)
+    D --> E(4: Dishes JSON)
+    E --> F(5: Dishes File Writer)
+    end
+    E -..-> G{{"`**Output**: List of 3 Dishes`"}}
+```
 
 Let's first define several AITools that we want to group into a process:
 
 ```python
-dishes_file = FileReader("Possible Dishes File Reader").set_input(
+dishes_file = ai.io.FileReader("Dishes File Reader").set_input(
     file_path="possible_dishes_prompt.txt")
     
-dishes_prompt = PromptBuilder("Possible Dishes Prompt").set_input(
+dishes_prompt = ai.tools.PromptBuilder("Dishes Prompt").set_input(
     template=dishes_file)
 
-dishes_llm = AIModel("Possible Dishes LLM").set_input(
+dishes_llm = ai.tools.AIModel("Dishes LLM").set_input(
     model_name="gpt-3.5-turbo", 
     prompt=dishes_prompt)
 
-dishes_json = Function("Possible Dishes JSON").set_input(
-    function="convert_to_json", 
+dishes_json = ai.operations.ConvertToJSON("Dishes JSON").set_input(
     input=dishes_llm)
 
-dishes_file_writer = FileWriter("Possible Dishes File Writer").set_input(
+dishes_file_writer = ai.io.FileWriter("Dishes File Writer").set_input(
     file_path="possible_dishes.json", 
     data=dishes_json)
 ```
@@ -111,7 +131,7 @@ dishes_file_writer = FileWriter("Possible Dishes File Writer").set_input(
 After defining these AITools, let's create our AIProcess:
 
 ```python
-dish_generator = AIProcess("Possible Dishes Process")
+dish_generator = ai.AIProcess("Possible Dishes Process")
 dish_generator.expose_input("ingredients", dishes_prompt)
 dish_generator.expose_output(dishes_json)
 ```
@@ -125,12 +145,26 @@ dish_generator.process()
 print(dish_generator.get_output())
 ```
 
-Note again that the input here for `ingedients` could also be another AITool.
+Note again that the input here for `ingredients` could also be another AITool.
+
+## Supported AITools
+
+| Package | Tool | Description |
+| ------- | ---- | ----------- |
+| ai.tools | AIModel | An interface to an LLM. A model name and prompt can be specified and the AIModel will return the LLM's response. |
+| ai.tools | PromptBuilder | A jinja2 style text replacement tool. A template and a dictionary of replacements are specified and this will return a string with the replacements made. |
+| ai.io | APIRequest | A wrapper around the requests package to make requests to an API. Returns the JSON of the response. |
+| ai.io | FileReader | Reads the contents of a file. |
+| ai.io | FileWriter | Writes content to a file. |
+| ai.io | PromptLayerRegistry | Retrieves a prompt template from the PromptLayer registry. |
+| ai.operations | ConvertToJSON | Converts the input from a string to JSON. |
 
 ## Roadmap (Right now just a list of goals)
 - Create a loop tool that wraps around another tool and performs some operation multiple times over that tool
     - Allow the loop tool to specify a certain number of threads to allow parallelization
 - Create a retry tool that checks a certain condition and if that condition is not satisfied it will try running the tool again
+- Better implementation of PromptLayer to track any request to AIModels instead of just openai models
+    - Need to find simple way of associating PromptLayer requests with the prompt template that was used
 - Implement automated retries for common errors with LLMs, with support for a timout period
 - Add a `.debug()` function to AITool that will nicely log the inputs and outputs of any AITool, with the option to specify a file to save these logs to.
 - Add better documentation so that on hover it is easy to see what the inputs are for any given AITool, along with examples of valid inputs (especially for AIModel & Function)
@@ -139,3 +173,5 @@ Note again that the input here for `ingedients` could also be another AITool.
 - Create an AITool for creating and retrieving embeddings
 - Add the abililty to pass in Callables to the function, so it doesn't require executing code from a string
 - Handle status code's that aren't 200 more gracefully in APIRequest
+- If there is a way to allow an AITool to automatically index into a dictionary so the ExtractKey tool isn't necessary, it might simplify the code
+- Create an example auto-fixing output parser that will try to convert an output to match some schema and if it doesn't work then it will use an llm to fix the output
