@@ -12,12 +12,12 @@ from ..ai_tool import AITool
 from ..ai_errors import AINonRetryableError, AIRetryableError
 
 
-class AIModel(AITool):
+class LLM(AITool):
     """
-    AIModel is a tool that can be used to call an AI model. It currently supports OpenAI, Anthropics, and Respell models.
+    LLM is a tool that can be used to call an AI model. It currently supports OpenAI, Anthropics, and Respell models.
 
     Required inputs:
-        model_name: str --- The name of the model to use. Get the list of available models with AIModel.ALL_MODEL_NAMES
+        model_name: str --- The name of the model to use. Get the list of available models with LLM.ALL_MODEL_NAMES
         prompt: str --- The prompt to send to the model
 
     Optional inputs:

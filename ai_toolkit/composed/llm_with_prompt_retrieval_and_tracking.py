@@ -2,7 +2,7 @@
 
 from ..ai_tool import AITool
 from ..ai_process import AIProcess
-from ai_toolkit.tools import PromptBuilder, AIModel
+from ai_toolkit.tools import PromptBuilder, LLM
 from ai_toolkit.io.promptlayer_tools import PromptLayerPromptTracker, PromptLayerRegistry, PromptLayerMetadataTracker
 from ai_toolkit.operations import Passthrough, ExtractKey
 
@@ -21,9 +21,9 @@ def LLMWithPromptRetrievalAndTracking(name: str) -> AIProcess:
     prompt_registry = PromptLayerRegistry(name)
     replacements_passthrough = Passthrough(name).set_input(name_of_input="replacements")
     prompt_builder = PromptBuilder(name).set_input(template=prompt_registry)
-    ai_model = AIModel(name).set_input(prompt=prompt_builder, use_promptlayer=True, return_pl_id=True)
-    promptlayer_request_id = ExtractKey(name).set_input(input=ai_model, key_name="pl_request_id")
-    ai_model_response = ExtractKey(name).set_input(input=ai_model, key_name="response")
+    llm = LLM(name).set_input(prompt=prompt_builder, use_promptlayer=True, return_pl_id=True)
+    promptlayer_request_id = ExtractKey(name).set_input(input=llm, key_name="pl_request_id")
+    llm_response = ExtractKey(name).set_input(input=llm, key_name="response")
 
     prompt_tracker = PromptLayerPromptTracker(name).set_input(pl_request_id=promptlayer_request_id, prompt_input_variables=replacements_passthrough)
     metadata_tracker = PromptLayerMetadataTracker(name).set_input(pl_request_id=promptlayer_request_id)
@@ -31,11 +31,11 @@ def LLMWithPromptRetrievalAndTracking(name: str) -> AIProcess:
     prompt_and_llm = AIProcess(name)
     prompt_and_llm.expose_input("template_name", prompt_registry)
     prompt_and_llm.expose_input("template_name", prompt_tracker)
-    prompt_and_llm.expose_input("promptlayer_tags", ai_model)
+    prompt_and_llm.expose_input("promptlayer_tags", llm)
     prompt_and_llm.expose_input("replacements", prompt_builder)
     prompt_and_llm.expose_input("replacements", replacements_passthrough)
-    prompt_and_llm.expose_input("model_name", ai_model)
+    prompt_and_llm.expose_input("model_name", llm)
     prompt_and_llm.expose_input("metadata", metadata_tracker)
-    prompt_and_llm.expose_output(ai_model_response)
+    prompt_and_llm.expose_output(llm_response)
 
     return prompt_and_llm

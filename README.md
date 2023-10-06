@@ -8,7 +8,7 @@ Here is a table of some of the basic tools (a more comprehensive table is below)
 
 | Tool | Description |
 | ---- | ----------- |
-| AIModel | An interface to an LLM. A model name and prompt can be specified and the AIModel will return the LLM's response. |
+| LLM | An interface to a large language model. A model name and prompt can be specified and the LLM will return the LLM's response. |
 | PromptBuilder | A jinja2 style text replacement tool. A template and a dictionary of replacements are specified and this will return a string with the replacements made. |
 | APIRequest | A wrapper around the requests package to make requests to an API. Returns the JSON of the response. |
 | FileReader | Reads the contents of a file. |
@@ -18,7 +18,7 @@ Here is a table of some of the basic tools (a more comprehensive table is below)
 The main goals are this project is to drive both high flexibility and simplicity. While safeguards can be built into pipelines by users to improve robustness, making these pipelines robust is not the goal of this package (there are many other libraries that aim to do this at the expense of flexibility and/or simplicity). This is why some deliberate design decisions have been made such as:
 
 - **Allowing dynamic inputs to any AITool** - All AITools have certain inputs that are required, but most of them have many optional inputs, and support the user defining their own inputs.
-- **Allowing all inputs to be dynamic** - while a lot of LLM libraries (i.e. LangChain, etc.) make you configure certain things in the pipeline such as what LLM model is being used, what templates are used for the prompt, etc. ***Everything*** in the AIToolkit can be dynamically set at runtime through another AITool. So you could have one AIModel decide what model another AIModel uses, or what file a FileReader should read, or even have it write the python code that a Function uses. You could load the template that a PromptBuilder uses from a file, or load the python code that a Function uses from a file. The possibilities are endless!
+- **Allowing all inputs to be dynamic** - while a lot of LLM libraries (i.e. LangChain, etc.) make you configure certain things in the pipeline such as what LLM model is being used, what templates are used for the prompt, etc. ***Everything*** in the AIToolkit can be dynamically set at runtime through another AITool. So you could have one LLM decide what model another LLM uses, or what file a FileReader should read, or even have it write the python code that a Function uses. You could load the template that a PromptBuilder uses from a file, or load the python code that a Function uses from a file. The possibilities are endless!
 - **Not enforcing any strict typing on the inputs/outputs** - The user will have to think about how data is being around to ensure type safety as that is not a core feature of this package (it would greatly reduce simplicity)
 
 ## Getting Started
@@ -57,7 +57,7 @@ Depending on the model that is used, these are the environment variables that wi
 Every AITool has 3 functions that are used. `set_input`, `process`, and `get_output`. Let's look at how you would interact with an LLM using this tool.
 
 ```python
-llm = ai.tools.AIModel("My LLM")
+llm = ai.tools.LLM("My LLM")
 llm.set_input(model_name="gpt-3.5-turbo", prompt="What is the capital of France?")
 llm.process()
 print(llm.get_output())
@@ -68,7 +68,7 @@ This would return something like: `The capital of France is Paris`.
 Note that all methods are chainable so this would be equivalent to:
 ```python
 p = "What is the capital of France?"
-print(ai.tools.AIModel("My LLM").set_input(model_name="gpt-3.5-turbo", prompt=p).process().get_output())
+print(ai.tools.LLM("My LLM").set_input(model_name="gpt-3.5-turbo", prompt=p).process().get_output())
 ```
 
 ### Using multiple AITools together
@@ -80,7 +80,7 @@ prompt_tool = ai.tools.PromptBuilder("My Prompt").set_input(
     template="What is the capital of {{country}}", 
     country="France")
 
-llm_tool = ai.tools.AIModel("My LLM").set_input(
+llm_tool = ai.tools.LLM("My LLM").set_input(
     model_name="gpt-3.5-turbo", 
     prompt=prompt_tool)
 
@@ -97,14 +97,14 @@ It can become tedious to process several AITools that have been chained together
 
 ```mermaid
 flowchart TD
-    B{{"`**Input**: Ingredients`"}} -..-> C
+    B{{Input: Ingredients}} -..-> C
     subgraph Possible Dishes Process
     A(1: Possible Dishes File Reader) --> C(2: Dishes Prompt)
     C --> D(3: Dishes LLM)
     D --> E(4: Dishes JSON)
     E --> F(5: Dishes File Writer)
     end
-    E -..-> G{{"`**Output**: List of 3 Dishes`"}}
+    E -..-> G{{Output: List of 3 Dishes}}
 ```
 
 Let's first define several AITools that we want to group into a process:
@@ -116,7 +116,7 @@ dishes_file = ai.io.FileReader("Dishes File Reader").set_input(
 dishes_prompt = ai.tools.PromptBuilder("Dishes Prompt").set_input(
     template=dishes_file)
 
-dishes_llm = ai.tools.AIModel("Dishes LLM").set_input(
+dishes_llm = ai.tools.LLM("Dishes LLM").set_input(
     model_name="gpt-3.5-turbo", 
     prompt=dishes_prompt)
 
@@ -151,27 +151,42 @@ Note again that the input here for `ingredients` could also be another AITool.
 
 | Package | Tool | Description |
 | ------- | ---- | ----------- |
-| ai.tools | AIModel | An interface to an LLM. A model name and prompt can be specified and the AIModel will return the LLM's response. |
+| ai | AIProcess | A process is a collection of AITools and is also an AITool itself.
+| ai.tools | LLM | An interface to a large language model. A model name and prompt can be specified and the LLM will return the LLM's response. |
 | ai.tools | PromptBuilder | A jinja2 style text replacement tool. A template and a dictionary of replacements are specified and this will return a string with the replacements made. |
 | ai.io | APIRequest | A wrapper around the requests package to make requests to an API. Returns the JSON of the response. |
 | ai.io | FileReader | Reads the contents of a file. |
 | ai.io | FileWriter | Writes content to a file. |
 | ai.io | PromptLayerRegistry | Retrieves a prompt template from the PromptLayer registry. |
+| ai.io | PromptLayerPromptTracker | Tracks the usage of a prompt template. |
+| ai.io | PromptLayerGroupCreator | Creates a new PromptLayer group. |
+| ai.io | PromptLayerGroupTracker | Tracks a request by adding it to a PromptLayer group. |
+| ai.io | PromptLayerMetadataTracker | Tracks a request by adding metadata to it. |
 | ai.operations | ConvertToJSON | Converts the input from a string to JSON. |
+| ai.operations | Passthrough | Takes an input and passes it through to the output. Useful for changing the name of an input for another AITool. |
+| ai.operations | ExtractKey | Takes a dictionary and a key name and returns the value of the dictionary indexed at the given key name. |
+| ai.operations | Calculator | Executes a single line of python code and returns the result. |
+| ai.composed | PromptAndLLM | A composition of the PromptBuilder and LLM tools. Takes in a model name, prompt template, and replacements dictionary and it will return the LLM's response |
+| ai.composed | LLMWithPromptRetrievalAndTracking | An integration of the LLM tool with many of the PromptLayer tools. This will retrieve a prompt from the PromptLayer registry, perform replacements, and track the LLM request with PromptLayer. It returns the LLM's response. |
+
+## Custom Code Blocks
+
+TODO: Create example of using a custom code block
 
 ## Roadmap (Right now just a list of goals)
 - Create a loop tool that wraps around another tool and performs some operation multiple times over that tool
     - Allow the loop tool to specify a certain number of threads to allow parallelization
 - Create a retry tool that checks a certain condition and if that condition is not satisfied it will try running the tool again
-- Better implementation of PromptLayer to track any request to AIModels instead of just openai models
+- Better implementation of PromptLayer to track any request to LLMs instead of just openai models
     - Need to find simple way of associating PromptLayer requests with the prompt template that was used
 - Implement automated retries for common errors with LLMs, with support for a timout period
 - Add a `.debug()` function to AITool that will nicely log the inputs and outputs of any AITool, with the option to specify a file to save these logs to.
-- Add better documentation so that on hover it is easy to see what the inputs are for any given AITool, along with examples of valid inputs (especially for AIModel & Function)
+- Add better documentation so that on hover it is easy to see what the inputs are for any given AITool, along with examples of valid inputs (especially for LLM & Function)
 - Create an example of how you would set up an AIProcess that automatically adjusts which LLM Model is used depending on the number of tokens in the prompt.
 - Create an AITool for interacting with a key/value store database
 - Create an AITool for creating and retrieving embeddings
-- Add the abililty to pass in Callables to the function, so it doesn't require executing code from a string
 - Handle status code's that aren't 200 more gracefully in APIRequest
 - If there is a way to allow an AITool to automatically index into a dictionary so the ExtractKey tool isn't necessary, it might simplify the code
 - Create an example auto-fixing output parser that will try to convert an output to match some schema and if it doesn't work then it will use an llm to fix the output
+- Test the calculator - set up an example where an LLM output goes into the calculator
+- Allow exposing optional inputs with an AIProcess
