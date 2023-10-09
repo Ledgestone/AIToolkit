@@ -48,6 +48,7 @@ Depending on the model that is used, these are the environment variables that wi
 - OPENAI_API_KEY
 - RESPELL_API_KEY
 - ANTHROPIC_API_KEY
+- PROMPTLAYER_API_KEY
 
 
 ## How to Use
@@ -146,6 +147,52 @@ print(dish_generator.get_output())
 ```
 
 Note again that the input here for `ingredients` could also be another AITool.
+
+## Reusing Composed Processes
+
+After building a set of AITools together it is super easy to reuse the composed AIProcess. All you have to do is create a function that takes in a name and returns this created AIProcess, and then you can create and use them just as any other AITool. See examples of this in ai_toolkit/composed. 
+
+Let's see an example of how we would create the same flow we just created using a composed tool that incorporates retrieving the prompt we want from the PromptLayer registry and then tracking the request using PromptLayer.
+
+```mermaid
+flowchart TD
+    B{{Input: Ingredients}} -...-> C
+    subgraph Possible Dishes Process
+    G{{Metadata}} -..-> F
+
+    subgraph Possible Dishes LLM
+    A(1a: Prompt Registry) --> C(1b: Dishes Prompt)
+    C --> D(1c: Dishes LLM)
+    D --> E(1d: PromptLayer Prompt Tracker)
+    D ---> F(1e: PromptLayer Metadata Tracker)
+    end
+
+    D -.-> Y(2: Dishes JSON)
+    Y --> X(3: Dishes File Writer)
+    end
+    Y -..-> Z{{Output: List of 3 Dishes}}
+```
+
+```python
+dishes_llm = ai.composed.LLMWithPromptRetrievalAndTracking("Possible Dishes LLM").set_input(
+    template_name="Possible Dishes",
+    model_name="respell-gpt-4-wrapper",
+    promptlayer_tags=["Test"],
+    metadata={"source": "RecipeMakerPromptLayer.ipynb"},
+)
+dishes_json = ai.operations.ConvertToJSON("Possible Dishes JSON").set_input(input=dishes_llm)
+dishes_file_writer = ai.io.FileWriter("Possible Dishes File Writer").set_input(file_path="possible_dishes.json", data=dishes_json)
+
+dish_generator = ai.AIProcess("Possible Dishes Process")
+dish_generator.expose_output(dishes_json)
+dish_generator.expose_input("replacements", dishes_llm)
+
+dish_generator.set_input(replacements={"ingredients": "chicken, rice, and broccoli"})
+dish_generator.process()
+dish_generator.get_output()
+```
+
+As you can see in this example, the LLMWithPromptRetrievalAndTracking is a composed object that has several different AITools that it uses, but we are able to set it up and use it just as we would any other AITool.
 
 ## Supported AITools
 
