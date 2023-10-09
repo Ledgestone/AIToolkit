@@ -158,7 +158,8 @@ Let's see an example of how we would create the same flow we just created using 
 flowchart TD
     B{{Input: Ingredients}} -..-> C
     subgraph Possible Dishes Process
-    G{{Metadata}} -..-> F
+    G{{Tags}} -.-> D
+    H{{Metadata}} -.-> F
 
     subgraph Possible Dishes LLM
     A(1a: Prompt Registry) --> C(1b: Dishes Prompt)
