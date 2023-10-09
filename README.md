@@ -156,7 +156,7 @@ Let's see an example of how we would create the same flow we just created using 
 
 ```mermaid
 flowchart TD
-    B{{Input: Ingredients}} -...-> C
+    B{{Input: Ingredients}} -..-> C
     subgraph Possible Dishes Process
     G{{Metadata}} -..-> F
 
