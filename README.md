@@ -221,13 +221,10 @@ As you can see in this example, the LLMWithPromptRetrievalAndTracking is a compo
 
 TODO: Create example of using a custom code block
 
-## Roadmap (Right now just a list of goals)
+## Roadmap (Right now just a list of ideas)
 - Create a loop tool that wraps around another tool and performs some operation multiple times over that tool
     - Allow the loop tool to specify a certain number of threads to allow parallelization
 - Create a retry tool that checks a certain condition and if that condition is not satisfied it will try running the tool again
-- Better implementation of PromptLayer to track any request to LLMs instead of just openai models
-    - Need to find simple way of associating PromptLayer requests with the prompt template that was used
-- Implement automated retries for common errors with LLMs, with support for a timout period
 - Add a `.debug()` function to AITool that will nicely log the inputs and outputs of any AITool, with the option to specify a file to save these logs to.
 - Add better documentation so that on hover it is easy to see what the inputs are for any given AITool, along with examples of valid inputs (especially for LLM & Function)
 - Create an example of how you would set up an AIProcess that automatically adjusts which LLM Model is used depending on the number of tokens in the prompt.
@@ -238,3 +235,5 @@ TODO: Create example of using a custom code block
 - Create an example auto-fixing output parser that will try to convert an output to match some schema and if it doesn't work then it will use an llm to fix the output
 - Test the calculator - set up an example where an LLM output goes into the calculator
 - Allow exposing optional inputs with an AIProcess
+- Is there a way to create notebook specific tools? Ways to decrease learning curve and increase developer productivity?
+- Create a way to automate the visualization of an AIProcess? At very least come up with rules for how visualizations should be created to describe a process.
