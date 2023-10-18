@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='ai_toolkit',
-    version='2.0.0',
+    version='2.1.0',
     author='Andrew Hellrigel',
     author_email='andrew.hellrigel@ledgestone.com',
     description='A simplified interface for interacting with LLMs',

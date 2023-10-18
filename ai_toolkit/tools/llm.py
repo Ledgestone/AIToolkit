@@ -1,4 +1,4 @@
-# base.py
+# llm.py
 
 import os
 import json
@@ -8,8 +8,8 @@ import requests
 import anthropic
 import promptlayer
 from typing import List, Dict, Any
-from ..ai_tool import AITool
-from ..ai_errors import AINonRetryableError, AIRetryableError
+from ai_toolkit import AITool
+from ai_toolkit.ai_errors import AINonRetryableError, AIRetryableError
 
 
 class LLM(AITool):
@@ -35,26 +35,29 @@ class LLM(AITool):
         Either a string or a dict with keys 'response' and 'pl_request_id'
     """
     OPENAI_MODEL_NAMES = ["gpt-3.5-turbo", "gpt-4", "gpt-3.5-turbo-16k"]
-    ANTHROPIC_MODEL_NAMES = ["claude-1", "claude-1-100k", "claude-instant-1", "claude-instant-1-100k", "claude-2"]
+    ANTHROPIC_MODEL_NAMES = ["claude-1", "claude-1-100k",
+                             "claude-instant-1", "claude-instant-1-100k", "claude-2"]
     RESPELL_MODEL_NAMES = ["respell-gpt-4-wrapper"]
-    ALL_MODEL_NAMES = OPENAI_MODEL_NAMES + ANTHROPIC_MODEL_NAMES + RESPELL_MODEL_NAMES
+    ALL_MODEL_NAMES = OPENAI_MODEL_NAMES + \
+        ANTHROPIC_MODEL_NAMES + RESPELL_MODEL_NAMES
 
     def __init__(self, name):
-        super().__init__(name)        
+        super().__init__(name)
         openai.api_key = os.getenv("OPENAI_API_KEY")
         self.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
         self.respell_api_key = os.getenv("RESPELL_API_KEY")
         self.promptlayer_api_key = os.getenv("PROMPTLAYER_API_KEY")
         promptlayer.api_key = self.promptlayer_api_key
-        
+
         self.required_input = ["model_name", "prompt"]
         self.optional_input = ["max_tokens", "temperature", "max_retries"]
         self.optional_input.extend([
-            "use_promptlayer", 
+            "use_promptlayer",
             "return_pl_id",
-            "promptlayer_tags"]) # Inputs for tracking the request with promptlayer
+            "promptlayer_tags"])  # Inputs for tracking the request with promptlayer
 
-        self.set_input(max_tokens=None, temperature=0.5, max_retries=5) # Default values for optional inputs
+        # Default values for optional inputs
+        self.set_input(max_tokens=None, temperature=0.5, max_retries=5)
 
     def _process(self) -> (str | Dict[str, Any]):
         model_name = self._get_from_input("model_name")
@@ -62,7 +65,6 @@ class LLM(AITool):
         max_tokens = self._get_from_input("max_tokens")
         temperature = self._get_from_input("temperature")
         max_retries = self._get_from_input("max_retries")
-        
 
         # Promptlayer inputs
         promptlayer_inputs = {
@@ -70,7 +72,7 @@ class LLM(AITool):
             "return_pl_id": self._get_from_input("return_pl_id") if "return_pl_id" in self.input else False,
             "promptlayer_tags": self._get_from_input("promptlayer_tags") if "promptlayer_tags" in self.input else None,
         }
-        
+
         max_tokens = None if max_tokens is None else int(max_tokens)
         temperature = float(temperature)
         max_retries = 0 if max_retries is None else int(max_retries)
@@ -79,7 +81,7 @@ class LLM(AITool):
         self._assert_message_formatting(messages)
 
         retries = 0
-        delay = 1
+        delay = 5
         while retries <= max_retries:
             try:
                 if model_name in self.OPENAI_MODEL_NAMES:
@@ -89,20 +91,22 @@ class LLM(AITool):
                 elif model_name in self.RESPELL_MODEL_NAMES:
                     return self._get_completion_respell(model_name, messages, promptlayer_inputs, prompt)
                 else:
-                    raise AINonRetryableError(f"Model name '{model_name}' is not a valid model name. Must be one of {self.ALL_MODEL_NAMES}")
+                    raise AINonRetryableError(
+                        f"Model name '{model_name}' is not a valid model name. Must be one of {self.ALL_MODEL_NAMES}")
             except AIRetryableError as e:
                 retries += 1
                 if retries > max_retries:
-                    raise AINonRetryableError(f"Retried {max_retries} times. Giving up.") from e
+                    raise AINonRetryableError(
+                        f"Error: {e}\tRetried {max_retries} times. Giving up.") from e
                 else:
-                    print(f"Retrying in {delay} seconds...")
+                    print(f"Error: {e}\tRetrying in {delay} seconds...")
                     time.sleep(delay)
-                    delay = 10 if delay == 1 else delay + 10
+                    delay = 10 if delay == 5 else delay + 10
             except AINonRetryableError as e:
                 raise e
             except Exception as e:
-                raise AINonRetryableError(f"Unknown error occurred: {e}") from e
-            
+                raise AINonRetryableError(
+                    f"Unknown error occurred: {e}") from e
 
     @staticmethod
     def _assert_message_formatting(messages: List[Dict[str, str]]):
@@ -110,19 +114,23 @@ class LLM(AITool):
         for message in messages:
             current_role = message["role"]
             if current_role not in ["user", "system", "assistant"]:
-                raise AINonRetryableError(f"Message role must be either 'user', 'system', or 'assistant'. Got {current_role}")
+                raise AINonRetryableError(
+                    f"Message role must be either 'user', 'system', or 'assistant'. Got {current_role}")
             elif prior_role == "system" and current_role not in ["user", "assistant"]:
-                raise AINonRetryableError(f"system messages must be followed by a user or assistant message. Got {current_role}")
+                raise AINonRetryableError(
+                    f"system messages must be followed by a user or assistant message. Got {current_role}")
             elif prior_role == "user" and current_role != "assistant":
-                raise AINonRetryableError(f"user messages must be followed by an assistant message. Got {current_role}")
+                raise AINonRetryableError(
+                    f"user messages must be followed by an assistant message. Got {current_role}")
             elif prior_role == "assistant" and current_role != "user":
-                raise AINonRetryableError(f"assistant messages must be followed by a user message. Got {current_role}")
+                raise AINonRetryableError(
+                    f"assistant messages must be followed by a user message. Got {current_role}")
 
             prior_role = current_role
 
         if prior_role != "user":
-            raise AINonRetryableError(f"The last message must be a user message. Got {message['role']}")
-
+            raise AINonRetryableError(
+                f"The last message must be a user message. Got {message['role']}")
 
     @staticmethod
     def _messages_from_text(text: str) -> List[Dict[str, str]]:
@@ -142,7 +150,7 @@ class LLM(AITool):
                 message_lines.append(line)
 
         # Add the last message
-        if current_role is not None and message_lines: 
+        if current_role is not None and message_lines:
             message = '\n'.join(message_lines).strip()
             output.append({'role': current_role, 'content': message})
 
@@ -152,7 +160,6 @@ class LLM(AITool):
             output = [{'role': 'user', 'content': message}]
 
         return output
-    
 
     def _get_completion_openai(self, model_name: str, messages: List[Dict[str, str]], max_tokens: int, temperature: float, promptlayer_inputs) -> str:
         if promptlayer_inputs["use_promptlayer"]:
@@ -162,8 +169,8 @@ class LLM(AITool):
             response, pl_request_id = pl_openai.ChatCompletion.create(
                 model=model_name,
                 messages=messages,
-                temperature=temperature, # this is the degree of randomness of the model's output
-                max_tokens=max_tokens, # this is the maximum number of tokens to generate
+                temperature=temperature,  # this is the degree of randomness of the model's output
+                max_tokens=max_tokens,  # this is the maximum number of tokens to generate
                 **pl_kwargs
             )
 
@@ -174,12 +181,11 @@ class LLM(AITool):
             response = openai.ChatCompletion.create(
                 model=model_name,
                 messages=messages,
-                temperature=temperature, # this is the degree of randomness of the model's output
-                max_tokens=max_tokens, # this is the maximum number of tokens to generate
+                temperature=temperature,  # this is the degree of randomness of the model's output
+                max_tokens=max_tokens,  # this is the maximum number of tokens to generate
             )
 
         return response.choices[0].message["content"]
-    
 
     def _get_completion_openai(self, model_name: str, messages: List[Dict[str, str]], max_tokens: int, temperature: float, promptlayer_inputs) -> str:
         completion_kwargs = {
@@ -207,21 +213,27 @@ class LLM(AITool):
             return response.choices[0].message["content"]
 
         except openai.error.Timeout as e:
-            raise AIRetryableError(f"OpenAI API request timed out for model {model_name}: {e}")
+            raise AIRetryableError(
+                f"OpenAI API request timed out for model {model_name}: {e}")
         except openai.error.APIError as e:
-            raise AIRetryableError(f"OpenAI API returned an API Error for model {model_name}: {e}")
+            raise AIRetryableError(
+                f"OpenAI API returned an API Error for model {model_name}: {e}")
         except openai.error.APIConnectionError as e:
-            raise AIRetryableError(f"OpenAI API request failed to connect for model {model_name}: {e}")
+            raise AIRetryableError(
+                f"OpenAI API request failed to connect for model {model_name}: {e}")
         except openai.error.InvalidRequestError as e:
-            raise AINonRetryableError(f"OpenAI API request was invalid for model {model_name}: {e}")
+            raise AINonRetryableError(
+                f"OpenAI API request was invalid for model {model_name}: {e}")
         except openai.error.AuthenticationError as e:
-            raise AINonRetryableError(f"OpenAI API request was not authorized for model {model_name}: {e}")
+            raise AINonRetryableError(
+                f"OpenAI API request was not authorized for model {model_name}: {e}")
         except openai.error.PermissionError as e:
-            raise AINonRetryableError(f"OpenAI API request was not permitted for model {model_name}: {e}")
+            raise AINonRetryableError(
+                f"OpenAI API request was not permitted for model {model_name}: {e}")
         except openai.error.RateLimitError as e:
-            raise AIRetryableError(f"OpenAI API request exceeded rate limit for model {model_name}: {e}")
+            raise AIRetryableError(
+                f"OpenAI API request exceeded rate limit for model {model_name}: {e}")
 
-    
     def _get_completion_anthropic(self, model_name: str, messages: List[Dict[str, str]], max_tokens: int, promptlayer_inputs) -> str:
         prompt = self._create_anthropic_prompt(messages)
         completion_kwargs = {
@@ -234,7 +246,8 @@ class LLM(AITool):
             pl_anthropic = promptlayer.anthropic
             pl_kwargs = self._get_promptlayer_kwargs(promptlayer_inputs)
 
-            anthropic_client = pl_anthropic.Anthropic(api_key=self.anthropic_api_key, max_retries=0)
+            anthropic_client = pl_anthropic.Anthropic(
+                api_key=self.anthropic_api_key, max_retries=0)
             response, pl_request_id = anthropic_client.completions.create(
                 **completion_kwargs,
                 **pl_kwargs
@@ -243,13 +256,13 @@ class LLM(AITool):
             if promptlayer_inputs["return_pl_id"]:
                 return {"response": response.completion, "pl_request_id": pl_request_id}
         else:
-            anthropic_client = anthropic.Anthropic(api_key=self.anthropic_api_key)
+            anthropic_client = anthropic.Anthropic(
+                api_key=self.anthropic_api_key)
             response = anthropic_client.completions.create(
                 **completion_kwargs,
             )
 
         return response.completion
-
 
     def _get_completion_anthropic(self, model_name: str, messages: List[Dict[str, str]], max_tokens: int, promptlayer_inputs) -> str:
         prompt = self._create_anthropic_prompt(messages)
@@ -263,7 +276,8 @@ class LLM(AITool):
             if promptlayer_inputs["use_promptlayer"]:
                 pl_kwargs = self._get_promptlayer_kwargs(promptlayer_inputs)
 
-                anthropic_client = promptlayer.anthropic.Anthropic(api_key=self.anthropic_api_key, max_retries=0)
+                anthropic_client = promptlayer.anthropic.Anthropic(
+                    api_key=self.anthropic_api_key, max_retries=0)
                 response, pl_request_id = anthropic_client.completions.create(
                     **completion_kwargs,
                     **pl_kwargs
@@ -272,29 +286,37 @@ class LLM(AITool):
                 if promptlayer_inputs["return_pl_id"]:
                     return {"response": response.completion, "pl_request_id": pl_request_id}
             else:
-                anthropic_client = anthropic.Anthropic(api_key=self.anthropic_api_key, max_retries=0)
-                response = anthropic_client.completions.create(**completion_kwargs)
+                anthropic_client = anthropic.Anthropic(
+                    api_key=self.anthropic_api_key, max_retries=0)
+                response = anthropic_client.completions.create(
+                    **completion_kwargs)
 
             return response.completion
 
         except anthropic.APIConnectionError as e:
-            raise AIRetryableError("The server could not be reached") from e.__cause__
+            raise AIRetryableError(
+                "The server could not be reached") from e.__cause__
         except anthropic.RateLimitError as e:
-            raise AIRetryableError("A 429 status code was received; consider backing off or retrying later.") from e
+            raise AIRetryableError(
+                "A 429 status code was received; consider backing off or retrying later.") from e
         except anthropic.AuthenticationError as e:
-            raise AINonRetryableError("Invalid API credentials provided.") from e
+            raise AINonRetryableError(
+                "Invalid API credentials provided.") from e
         except anthropic.PermissionDeniedError as e:
-            raise AINonRetryableError("Permission denied for the API request.") from e
+            raise AINonRetryableError(
+                "Permission denied for the API request.") from e
         except anthropic.NotFoundError as e:
             raise AIRetryableError(f"Resource not found: {e.response}") from e
         except anthropic.UnprocessableEntityError as e:
-            raise AINonRetryableError(f"Request could not be processed: {e.response}") from e
+            raise AINonRetryableError(
+                f"Request could not be processed: {e.response}") from e
         except anthropic.InternalServerError as e:
-            raise AIRetryableError(f"Internal server error: {e.response}") from e
+            raise AIRetryableError(
+                f"Internal server error: {e.response}") from e
         except anthropic.APIStatusError as e:
-            raise AIRetryableError(f"Received a non-200-range status code: {e.status_code}. Response: {e.response}") from e
+            raise AIRetryableError(
+                f"Received a non-200-range status code: {e.status_code}. Response: {e.response}") from e
 
-    
     def _get_completion_respell(self, model_name: str, messages: List[Dict[str, str]], promptlayer_inputs, original_prompt) -> str:
         request_start_time = time.time()
         instruction, prompt = self._create_respell_prompt(messages)
@@ -319,14 +341,14 @@ class LLM(AITool):
                 "api_key": self.promptlayer_api_key,
             }
 
-            pl_response = requests.post(url, json=data_payload, headers=headers)
+            pl_response = requests.post(
+                url, json=data_payload, headers=headers)
             pl_request_id = pl_response.json()['request_id']
 
             if promptlayer_inputs["return_pl_id"]:
                 return {"response": completion, "pl_request_id": pl_request_id}
 
         return completion
-
 
     @staticmethod
     def _create_anthropic_prompt(messages: List[Dict[str, str]]) -> str:
@@ -343,7 +365,6 @@ class LLM(AITool):
                 prompt += f"\n\nAssistant: {message['content']}"
 
         return prompt
-    
 
     @staticmethod
     def _create_respell_prompt(messages: List[Dict[str, str]]) -> (str, str):
@@ -353,7 +374,7 @@ class LLM(AITool):
             messages = messages[1:]
         else:
             instruction = "You are a helpful AI assistant."
-        
+
         prompt = ""
         for i, message in enumerate(messages):
             # If last message then add '\n\nAssistant: ' at the end
@@ -366,11 +387,10 @@ class LLM(AITool):
 
         return instruction, prompt
 
-
     def _call_respell_api(self, model_name: str, instruction: str, prompt: str) -> str:
         models = {
             "respell-gpt-4-wrapper": {
-                "spellId": "6fc_quNWYHRVNvfvb53uk", 
+                "spellId": "6fc_quNWYHRVNvfvb53uk",
                 "spellVersionId": "TF2mP48JHyO9zQlqVYWMs"
             }
         }
@@ -393,21 +413,25 @@ class LLM(AITool):
                     }
                 }),
             )
-            response.raise_for_status()  # Raise an HTTPError if the response contains a 4xx/5xx status code
+            # Raise an HTTPError if the response contains a 4xx/5xx status code
+            response.raise_for_status()
             completion = response.json()['outputs']['output']
             assert completion is not None
 
         except requests.ConnectionError:
-            raise AIRetryableError("Error in get_completion_respell: Connection error")
+            raise AIRetryableError(
+                "Error in get_completion_respell: Connection error")
         except requests.Timeout:
-            raise AIRetryableError("Error in get_completion_respell: Request timed out")
+            raise AIRetryableError(
+                "Error in get_completion_respell: Request timed out")
         except requests.RequestException as e:
-            raise AIRetryableError(f"Error in get_completion_respell: {e}\nStatus code: {response.status_code}\nResponse: {response.text}") from e
+            raise AIRetryableError(
+                f"Error in get_completion_respell: {e}\nStatus code: {response.status_code}\nResponse: {response.text}") from e
         except AssertionError as e:
-            raise AIRetryableError(f"Received None response in get_completion_respell\n{e}\n{response}\n{response.json()}") from e
+            raise AIRetryableError(
+                f"Received None response in get_completion_respell\n{e}\n{response}\n{response.json()}") from e
 
         return completion
-
 
     @staticmethod
     def _get_promptlayer_kwargs(promptlayer_inputs: Dict[str, Any]) -> Dict[str, Any]:
@@ -417,4 +441,3 @@ class LLM(AITool):
         }
 
         return {k: v for k, v in promptlayer_kwargs.items() if v is not None}
-

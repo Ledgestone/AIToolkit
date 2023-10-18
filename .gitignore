@@ -6,6 +6,8 @@
 *Venv
 Clients/
 Temp/
+QualitativeAnalysis/
+GraphAnalyzer/
 
 __pycache__/
 .DS_Store

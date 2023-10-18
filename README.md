@@ -2,7 +2,7 @@
 
 AIToolkit is a project that simplifies the creation of pipelines utilizing large language models. 
 
-The core concept is the idea of an AITool. Every object in this library is AITool, and AITools can be connected together in just about any way. AITools can be grouped together as an AIProcess, which is also just an AITool.
+The core concept is the idea of an AITool. Every object in this library is AITool, and AITools can be connected together in just about any way. AITools can be grouped together as an Process, which is also just an AITool.
 
 Here is a table of some of the basic tools (a more comprehensive table is below)
 
@@ -92,9 +92,9 @@ print(llm_tool.get_output())
 
 As you can see from this example, it is easy to chain together different AITools. Any input can be another AITool, and as long as all inputs have processed, the current AITool will be able to process as well.
 
-### Using an AIProcess
+### Using an Process
 
-It can become tedious to process several AITools that have been chained together, so AITools can be grouped together using an AIProcess, so that they can all be processed at once as another AITool. This is the pipeline we will be designing:
+It can become tedious to process several AITools that have been chained together, so AITools can be grouped together using an Process, so that they can all be processed at once as another AITool. This is the pipeline we will be designing:
 
 ```mermaid
 flowchart TD
@@ -129,15 +129,15 @@ dishes_file_writer = ai.io.FileWriter("Dishes File Writer").set_input(
     data=dishes_json)
 ```
 
-After defining these AITools, let's create our AIProcess:
+After defining these AITools, let's create our Process:
 
 ```python
-dish_generator = ai.AIProcess("Possible Dishes Process")
+dish_generator = ai.flow.Process("Possible Dishes Process")
 dish_generator.expose_input("ingredients", dishes_prompt)
 dish_generator.expose_output(dishes_json)
 ```
 
-Now we have a dish_generator that has the input `ingredients`, and outputs 3 dishes that it generates as an array. It also saves these dishes to a json file to be able to go back to. The AIProcess automatically determines all AITools in the process by analyzing the links between the AITools defined in the inputs and outputs.
+Now we have a dish_generator that has the input `ingredients`, and outputs 3 dishes that it generates as an array. It also saves these dishes to a json file to be able to go back to. The Process automatically determines all AITools in the process by analyzing the links between the AITools defined in the inputs and outputs.
 
 Now we can use the `dish_generator` just like any other AITool:
 ```python
@@ -150,7 +150,7 @@ Note again that the input here for `ingredients` could also be another AITool.
 
 ## Reusing Composed Processes
 
-After building a set of AITools together it is super easy to reuse the composed AIProcess. All you have to do is create a function that takes in a name and returns this created AIProcess, and then you can create and use them just as any other AITool. See examples of this in ai_toolkit/composed. 
+After building a set of AITools together it is super easy to reuse the composed Process. All you have to do is create a function that takes in a name and returns this created Process, and then you can create and use them just as any other AITool. See examples of this in ai_toolkit/composed. 
 
 Let's see an example of how we would create the same flow we just created using a composed tool that incorporates retrieving the prompt we want from the PromptLayer registry and then tracking the request using PromptLayer.
 
@@ -184,7 +184,7 @@ dishes_llm = ai.composed.LLMWithPromptRetrievalAndTracking("Possible Dishes LLM"
 dishes_json = ai.operations.ConvertToJSON("Possible Dishes JSON").set_input(input=dishes_llm)
 dishes_file_writer = ai.io.FileWriter("Possible Dishes File Writer").set_input(file_path="possible_dishes.json", data=dishes_json)
 
-dish_generator = ai.AIProcess("Possible Dishes Process")
+dish_generator = ai.flow.Process("Possible Dishes Process")
 dish_generator.expose_output(dishes_json)
 dish_generator.expose_input("replacements", dishes_llm)
 
@@ -199,7 +199,7 @@ As you can see in this example, the LLMWithPromptRetrievalAndTracking is a compo
 
 | Package | Tool | Description |
 | ------- | ---- | ----------- |
-| ai | AIProcess | A process is a collection of AITools and is also an AITool itself.
+| ai | Process | A process is a collection of AITools and is also an AITool itself.
 | ai.tools | LLM | An interface to a large language model. A model name and prompt can be specified and the LLM will return the LLM's response. |
 | ai.tools | PromptBuilder | A jinja2 style text replacement tool. A template and a dictionary of replacements are specified and this will return a string with the replacements made. |
 | ai.io | APIRequest | A wrapper around the requests package to make requests to an API. Returns the JSON of the response. |
@@ -227,13 +227,12 @@ TODO: Create example of using a custom code block
 - Create a retry tool that checks a certain condition and if that condition is not satisfied it will try running the tool again
 - Add a `.debug()` function to AITool that will nicely log the inputs and outputs of any AITool, with the option to specify a file to save these logs to.
 - Add better documentation so that on hover it is easy to see what the inputs are for any given AITool, along with examples of valid inputs (especially for LLM & Function)
-- Create an example of how you would set up an AIProcess that automatically adjusts which LLM Model is used depending on the number of tokens in the prompt.
+- Create an example of how you would set up an Process that automatically adjusts which LLM Model is used depending on the number of tokens in the prompt.
 - Create an AITool for interacting with a key/value store database
 - Create an AITool for creating and retrieving embeddings
 - Handle status code's that aren't 200 more gracefully in APIRequest
 - If there is a way to allow an AITool to automatically index into a dictionary so the ExtractKey tool isn't necessary, it might simplify the code
-- Create an example auto-fixing output parser that will try to convert an output to match some schema and if it doesn't work then it will use an llm to fix the output
 - Test the calculator - set up an example where an LLM output goes into the calculator
-- Allow exposing optional inputs with an AIProcess
+- Allow exposing optional inputs with a Process
 - Is there a way to create notebook specific tools? Ways to decrease learning curve and increase developer productivity?
-- Create a way to automate the visualization of an AIProcess? At very least come up with rules for how visualizations should be created to describe a process.
+- Create a way to automate the visualization of an Process? At very least come up with rules for how visualizations should be created to describe a process.
