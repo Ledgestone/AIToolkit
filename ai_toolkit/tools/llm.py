@@ -354,6 +354,7 @@ class LLM(AITool):
     def _create_anthropic_prompt(messages: List[Dict[str, str]]) -> str:
         prompt = ""
         if messages[0]["role"] == "system":
+            message = messages.pop(0)
             prompt += f"\n\nHuman: {message['content']}\n\nAssistant: I understand these instructions."
         for i, message in enumerate(messages):
             # If last message then add '\n\nAssistant:' at the end
@@ -425,6 +426,9 @@ class LLM(AITool):
             raise AIRetryableError(
                 "Error in get_completion_respell: Request timed out")
         except requests.RequestException as e:
+            raise AIRetryableError(
+                f"Error in get_completion_respell: {e}\nStatus code: {response.status_code}\nResponse: {response.text}") from e
+        except KeyError as e:
             raise AIRetryableError(
                 f"Error in get_completion_respell: {e}\nStatus code: {response.status_code}\nResponse: {response.text}") from e
         except AssertionError as e:
