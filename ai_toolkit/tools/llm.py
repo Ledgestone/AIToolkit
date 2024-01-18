@@ -25,6 +25,7 @@ class LLM(AITool):
         max_tokens: int --- The maximum number of tokens to generate
         temperature: float --- The degree of randomness of the model's output; default is 0.5
         max_retries: int --- The maximum number of times to retry the request; default is 5
+        response_format: Dict[str, str] --- A dictionary of the response format to use; default is None (to get JSON use {"type": "json_object"})
         use_promptlayer: bool --- Whether to use promptlayer to track the request
         return_pl_id: bool --- Whether to return the promptlayer request id (will return a dict with keys 'response' and 'pl_request_id')
         promptlayer_tags: List[str] --- Tags to add to the promptlayer request
@@ -36,7 +37,7 @@ class LLM(AITool):
         Either a string or a dict with keys 'response' and 'pl_request_id'
     """
     OPENAI_MODEL_NAMES = ["gpt-3.5-turbo", "gpt-4",
-                          "gpt-3.5-turbo-16k", "gpt-4-1106-preview"]
+                          "gpt-3.5-turbo-16k", "gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
     ANTHROPIC_MODEL_NAMES = ["claude-1", "claude-1-100k",
                              "claude-instant-1", "claude-instant-1-100k", "claude-2"]
     RESPELL_MODEL_NAMES = ["respell-gpt-4-wrapper"]
@@ -52,14 +53,16 @@ class LLM(AITool):
         promptlayer.api_key = self.promptlayer_api_key
 
         self.required_input = ["model_name", "prompt"]
-        self.optional_input = ["max_tokens", "temperature", "max_retries"]
+        self.optional_input = ["max_tokens",
+                               "temperature", "max_retries", "response_format"]
         self.optional_input.extend([
             "use_promptlayer",
             "return_pl_id",
             "promptlayer_tags"])  # Inputs for tracking the request with promptlayer
 
         # Default values for optional inputs
-        self.set_input(max_tokens=None, temperature=0.5, max_retries=5)
+        self.set_input(max_tokens=None, temperature=0.5,
+                       max_retries=5, response_format=None)
 
     def _process(self) -> (str | Dict[str, Any]):
         model_name = self._get_from_input("model_name")
@@ -67,6 +70,7 @@ class LLM(AITool):
         max_tokens = self._get_from_input("max_tokens")
         temperature = self._get_from_input("temperature")
         max_retries = self._get_from_input("max_retries")
+        response_format = self._get_from_input("response_format")
 
         # Promptlayer inputs
         promptlayer_inputs = {
@@ -87,7 +91,7 @@ class LLM(AITool):
         while retries <= max_retries:
             try:
                 if model_name in self.OPENAI_MODEL_NAMES:
-                    return self._get_completion_openai(model_name, messages, max_tokens, temperature, promptlayer_inputs)
+                    return self._get_completion_openai(model_name, messages, max_tokens, temperature, response_format, promptlayer_inputs)
                 elif model_name in self.ANTHROPIC_MODEL_NAMES:
                     return self._get_completion_anthropic(model_name, messages, max_tokens, promptlayer_inputs)
                 elif model_name in self.RESPELL_MODEL_NAMES:
@@ -163,12 +167,13 @@ class LLM(AITool):
 
         return output
 
-    def _get_completion_openai(self, model_name: str, messages: List[Dict[str, str]], max_tokens: int, temperature: float, promptlayer_inputs) -> str:
+    def _get_completion_openai(self, model_name: str, messages: List[Dict[str, str]], max_tokens: int, temperature: float, response_format: Dict[str, str], promptlayer_inputs) -> str:
         completion_kwargs = {
             "model": model_name,
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
+            "response_format": response_format,
         }
         try:
             if promptlayer_inputs["use_promptlayer"]:
