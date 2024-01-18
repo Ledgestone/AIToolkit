@@ -4,6 +4,7 @@ import os
 import json
 import time
 import openai
+from openai import OpenAI
 import requests
 import anthropic
 import promptlayer
@@ -43,7 +44,7 @@ class LLM(AITool):
 
     def __init__(self, name):
         super().__init__(name)
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        self.openai_api_key = os.getenv("OPENAI_API_KEY")
         self.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
         self.respell_api_key = os.getenv("RESPELL_API_KEY")
         self.promptlayer_api_key = os.getenv("PROMPTLAYER_API_KEY")
@@ -162,32 +163,6 @@ class LLM(AITool):
         return output
 
     def _get_completion_openai(self, model_name: str, messages: List[Dict[str, str]], max_tokens: int, temperature: float, promptlayer_inputs) -> str:
-        if promptlayer_inputs["use_promptlayer"]:
-            pl_openai = promptlayer.openai
-            pl_kwargs = self._get_promptlayer_kwargs(promptlayer_inputs)
-
-            response, pl_request_id = pl_openai.ChatCompletion.create(
-                model=model_name,
-                messages=messages,
-                temperature=temperature,  # this is the degree of randomness of the model's output
-                max_tokens=max_tokens,  # this is the maximum number of tokens to generate
-                **pl_kwargs
-            )
-
-            if promptlayer_inputs["return_pl_id"]:
-                return {"response": response.choices[0].message["content"], "pl_request_id": pl_request_id}
-
-        else:
-            response = openai.ChatCompletion.create(
-                model=model_name,
-                messages=messages,
-                temperature=temperature,  # this is the degree of randomness of the model's output
-                max_tokens=max_tokens,  # this is the maximum number of tokens to generate
-            )
-
-        return response.choices[0].message["content"]
-
-    def _get_completion_openai(self, model_name: str, messages: List[Dict[str, str]], max_tokens: int, temperature: float, promptlayer_inputs) -> str:
         completion_kwargs = {
             "model": model_name,
             "messages": messages,
@@ -196,73 +171,52 @@ class LLM(AITool):
         }
         try:
             if promptlayer_inputs["use_promptlayer"]:
-                pl_openai = promptlayer.openai
+                PLOpenAI = promptlayer.openai.OpenAI
+                client = PLOpenAI(api_key=self.openai_api_key)
                 pl_kwargs = self._get_promptlayer_kwargs(promptlayer_inputs)
 
-                response, pl_request_id = pl_openai.ChatCompletion.create(
+                response, pl_request_id = client.chat.completions.create(
                     **completion_kwargs,
                     **pl_kwargs
                 )
 
                 if promptlayer_inputs["return_pl_id"]:
-                    return {"response": response.choices[0].message["content"], "pl_request_id": pl_request_id}
+                    return {"response": response.choices[0].message.content, "pl_request_id": pl_request_id}
             else:
-                response = openai.ChatCompletion.create(
-                    **completion_kwargs,
-                )
-            return response.choices[0].message["content"]
+                client = OpenAI(api_key=self.openai_api_key)
+                response = client.chat.completions.create(**completion_kwargs)
+            return response.choices[0].message.content
 
-        except openai.error.Timeout as e:
+        except openai.APITimeoutError as e:
             raise AIRetryableError(
                 f"OpenAI API request timed out for model {model_name}: {e}")
-        except openai.error.APIError as e:
-            raise AIRetryableError(
-                f"OpenAI API returned an API Error for model {model_name}: {e}")
-        except openai.error.APIConnectionError as e:
+        except openai.APIConnectionError as e:
             raise AIRetryableError(
                 f"OpenAI API request failed to connect for model {model_name}: {e}")
-        except openai.error.InvalidRequestError as e:
-            raise AINonRetryableError(
-                f"OpenAI API request was invalid for model {model_name}: {e}")
-        except openai.error.AuthenticationError as e:
+        except openai.AuthenticationError as e:
             raise AINonRetryableError(
                 f"OpenAI API request was not authorized for model {model_name}: {e}")
-        except openai.error.PermissionError as e:
+        except openai.BadRequestError as e:
+            raise AINonRetryableError(
+                f"OpenAI API request was invalid for model {model_name}: {e}")
+        except openai.ConflictError as e:
+            raise AIRetryableError(
+                f"OpenAI API request conflicted for model {model_name}: {e}")
+        except openai.PermissionDeniedError as e:
             raise AINonRetryableError(
                 f"OpenAI API request was not permitted for model {model_name}: {e}")
-        except openai.error.RateLimitError as e:
+        except openai.RateLimitError as e:
             raise AIRetryableError(
                 f"OpenAI API request exceeded rate limit for model {model_name}: {e}")
-
-    def _get_completion_anthropic(self, model_name: str, messages: List[Dict[str, str]], max_tokens: int, promptlayer_inputs) -> str:
-        prompt = self._create_anthropic_prompt(messages)
-        completion_kwargs = {
-            "prompt": prompt,
-            "model": model_name,
-            "max_tokens_to_sample": 4096 if max_tokens is None else max_tokens,
-        }
-
-        if promptlayer_inputs["use_promptlayer"]:
-            pl_anthropic = promptlayer.anthropic
-            pl_kwargs = self._get_promptlayer_kwargs(promptlayer_inputs)
-
-            anthropic_client = pl_anthropic.Anthropic(
-                api_key=self.anthropic_api_key, max_retries=0)
-            response, pl_request_id = anthropic_client.completions.create(
-                **completion_kwargs,
-                **pl_kwargs
-            )
-
-            if promptlayer_inputs["return_pl_id"]:
-                return {"response": response.completion, "pl_request_id": pl_request_id}
-        else:
-            anthropic_client = anthropic.Anthropic(
-                api_key=self.anthropic_api_key)
-            response = anthropic_client.completions.create(
-                **completion_kwargs,
-            )
-
-        return response.completion
+        except openai.UnprocessableEntityError as e:
+            raise AINonRetryableError(
+                f"OpenAI API request was unprocessable for model {model_name}: {e}")
+        except openai.NotFoundError as e:
+            raise AINonRetryableError(
+                f"OpenAI API request was not found for model {model_name}: {e}")
+        except openai.InternalServerError as e:
+            raise AIRetryableError(
+                f"OpenAI API request encountered an internal server error for model {model_name}: {e}")
 
     def _get_completion_anthropic(self, model_name: str, messages: List[Dict[str, str]], max_tokens: int, promptlayer_inputs) -> str:
         prompt = self._create_anthropic_prompt(messages)
