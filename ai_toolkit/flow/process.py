@@ -12,6 +12,12 @@ class Process(AITool):
         self.process_inputs: Dict[str, "_ProcessInput"] = dict()
 
     def _process(self) -> Any:
+        self._process_all_inputs()
+        self._process_all_tools()
+
+        return self.output_tool.get_output()
+
+    def _process_all_inputs(self) -> None:
         ai_tools = self.ai_tools_in_process()
         for ai_tool in ai_tools:
             if not ai_tool._has_inputs_connected():
@@ -21,6 +27,8 @@ class Process(AITool):
         for process_input in self.process_inputs.values():
             process_input.process()
 
+    def _process_all_tools(self) -> None:
+        ai_tools = self.ai_tools_in_process()
         still_processing = True
         processed_tools = list()
         while still_processing:
@@ -39,8 +47,6 @@ class Process(AITool):
                 ai_tool for ai_tool in ai_tools if ai_tool not in processed_tools]
             raise AIRetryableError(
                 f"Cannot finish processing {self}, because the following tools could not be processed: {unprocessed_tools}")
-
-        return self.output_tool.get_output()
 
     def set_input(self, **kwargs) -> "Process":
         for key, value in kwargs.items():
@@ -69,6 +75,18 @@ class Process(AITool):
             self.dynamic_input.append(key)
 
         return self
+
+    def reset_process(self) -> None:
+        # Set the output to None for all the process inputs and all the tools in the process.
+        # If an ai tool in the process is a process, then reset that process as well.
+        for process_input in self.process_inputs.values():
+            process_input.output = None
+
+        ai_tools = self.ai_tools_in_process()
+        for ai_tool in ai_tools:
+            ai_tool.output = None
+            if isinstance(ai_tool, Process):
+                ai_tool.reset_process()
 
     def can_process(self) -> bool:
         for input in self.process_inputs.values():

@@ -37,7 +37,7 @@ class LLM(AITool):
         Either a string or a dict with keys 'response' and 'pl_request_id'
     """
     OPENAI_MODEL_NAMES = ["gpt-3.5-turbo", "gpt-4",
-                          "gpt-3.5-turbo-16k", "gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
+                          "gpt-3.5-turbo-16k", "gpt-4-1106-preview", "gpt-3.5-turbo-1106", "gpt-4-0125-preview", "gpt-3.5-turbo-0125"]
     ANTHROPIC_MODEL_NAMES = ["claude-1", "claude-1-100k",
                              "claude-instant-1", "claude-instant-1-100k", "claude-2"]
     RESPELL_MODEL_NAMES = ["respell-gpt-4-wrapper"]
