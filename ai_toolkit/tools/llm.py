@@ -7,7 +7,7 @@ import openai
 from openai import OpenAI
 import requests
 import anthropic
-import promptlayer
+from promptlayer import PromptLayer
 from typing import List, Dict, Any
 from ai_toolkit import AITool
 from ai_toolkit.ai_errors import AINonRetryableError, AIRetryableError
@@ -49,8 +49,8 @@ class LLM(AITool):
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         self.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
         self.respell_api_key = os.getenv("RESPELL_API_KEY")
-        self.promptlayer_api_key = os.getenv("PROMPTLAYER_API_KEY")
-        promptlayer.api_key = self.promptlayer_api_key
+        self.promptlayer_client = PromptLayer(
+            api_key=os.getenv("PROMPTLAYER_API_KEY"))
 
         self.required_input = ["model_name", "prompt"]
         self.optional_input = ["max_tokens",
@@ -177,7 +177,7 @@ class LLM(AITool):
         }
         try:
             if promptlayer_inputs["use_promptlayer"]:
-                PLOpenAI = promptlayer.openai.OpenAI
+                PLOpenAI = self.promptlayer_client.openai.OpenAI
                 client = PLOpenAI(api_key=self.openai_api_key)
                 pl_kwargs = self._get_promptlayer_kwargs(promptlayer_inputs)
 
@@ -236,7 +236,7 @@ class LLM(AITool):
             if promptlayer_inputs["use_promptlayer"]:
                 pl_kwargs = self._get_promptlayer_kwargs(promptlayer_inputs)
 
-                anthropic_client = promptlayer.anthropic.Anthropic(
+                anthropic_client = self.promptlayer_client.anthropic.Anthropic(
                     api_key=self.anthropic_api_key, max_retries=0)
                 response, pl_request_id = anthropic_client.completions.create(
                     **completion_kwargs,
